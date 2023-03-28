@@ -14,28 +14,68 @@ class API(Resource):
         self.module = module
 
     def get(self, project_id: int):
-        # log.info(f"{request.args=}")
-        result = []
+        result = {}
+
+        exclude_fields = (
+            'project_name', 'description', 'urls_to_scan', 'urls_exclusions', 'scan_location', 'test_config'
+        )
 
         if start_time := request.args.get('start_time'):
             start_time = datetime.fromisoformat(start_time.strip('Z'))
 
-        if end_time := request.args.get('end_time'):
-            end_time = datetime.fromisoformat(end_time.strip('Z'))
-
-        for plugin in ('backend_performance', 'ui_performance'):
+        security_plugins = ['application', ]
+        for plugin in security_plugins:
             try:
                 reports = self.module.context.rpc_manager.call_function_with_timeout(
-                    func=f'{plugin}_get_reports',
+                    func=f'{plugin}_security_results_dast',
                     timeout=3,
                     project_id=project_id,
-                    start_time=start_time,
-                    end_time=end_time
+                    start_date=start_time,
                 )
-                result.extend(
-                    [{"report_type": plugin, **report.to_json()} for report in reports]
+                unique_test_results = self.module.context.rpc_manager.call_function_with_timeout(
+                    func=f'{plugin}_security_results_dast',
+                    timeout=3,
+                    project_id=project_id,
+                    start_date=start_time,
+                    unique=True
                 )
+                result[plugin] = {
+                    "health": self.get_health(unique_test_results),
+                    "report_type": plugin,
+                    "reports": [{**report.to_json(exclude_fields)} for report in reports]
+                }
             except Empty:
                 ...
-        # result = [report for report in result]  # wtf?
+
         return result
+
+    @staticmethod
+    def get_health(test_results):
+        AMBER_THRESHOLD = 0.6
+        GREEN_THRESHOLD = 0.8
+        GREY_THRESHOLD = 0.5
+
+        succeeded_tests = 0
+        finished_tests = 0
+
+        all_tests = len(test_results)
+
+        for report in test_results:
+            log.info(f"{report.test_status=}")
+            if report.test_status["status"].lower() == 'finished':
+                finished_tests += 1
+            elif report.test_status["status"].lower() == 'success':
+                succeeded_tests += 1
+
+        log.info(f"{succeeded_tests=}, {finished_tests=}, {all_tests=}")
+
+        if (finished_tests >= all_tests * GREY_THRESHOLD) or not all_tests:
+            return 'grey'
+
+        all_tests -= finished_tests
+        if (succeeded_tests / all_tests) >= GREEN_THRESHOLD:
+            return 'green'
+        elif (succeeded_tests / all_tests) >= AMBER_THRESHOLD:
+            return 'amber'
+        else:
+            return 'red'

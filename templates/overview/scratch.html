@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+</head>
+<body>
+
+<h1>
+    asdasad
+</h1>
+</body>
+<script>
+    const data = {
+        "application": {
+            "health": "grey",
+            "report_type": "application",
+            "reports": [
+                {
+                    "id": 6,
+                    "project_id": 2,
+                    "engagement": null,
+                    "test_id": 1,
+                    "test_uid": "42105aec-d49d-4f8c-86e5-c9e5fff9d13a",
+                    "start_date": "2023-03-16T07:15:24.214383",
+                    "duration": null,
+                    "scan_time": "2023-03-16 07:18:33",
+                    "scan_duration": "160",
+                    "app_name": "dev",
+                    "dast_target": null,
+                    "sast_code": null,
+                    "scan_type": "DAST",
+                    "false_positives": 0,
+                    "excluded": 0,
+                    "info_findings": 0,
+                    "environment": "target",
+                    "findings": 0,
+                    "tags": [],
+                    "test_status": {
+                        "status": "Finished",
+                        "percentage": 100,
+                        "description": "All done"
+                    },
+                    "valid": 0,
+                    "false_positive": 0,
+                    "ignored": 0,
+                    "not_defined": 0,
+                    "critical": 0,
+                    "high": 0,
+                    "medium": 0,
+                    "low": 1,
+                    "info": 1,
+                    "name": "dev"
+                },
+                {
+                    "id": 2,
+                    "project_id": 2,
+                    "engagement": null,
+                    "test_id": 1,
+                    "test_uid": "42105aec-d49d-4f8c-86e5-c9e5fff9d13a",
+                    "start_date": "2023-03-16T06:34:37.200844",
+                    "duration": null,
+                    "scan_time": "2023-03-16 06:45:06",
+                    "scan_duration": "603",
+                    "app_name": "dev",
+                    "dast_target": null,
+                    "sast_code": null,
+                    "scan_type": "DAST",
+                    "false_positives": 0,
+                    "excluded": 0,
+                    "info_findings": 0,
+                    "environment": "target",
+                    "findings": 0,
+                    "tags": [],
+                    "test_status": {
+                        "status": "Finished",
+                        "percentage": 100,
+                        "description": "All done"
+                    },
+                    "valid": 0,
+                    "false_positive": 0,
+                    "ignored": 0,
+                    "not_defined": 0,
+                    "critical": 2,
+                    "high": 2,
+                    "medium": 3,
+                    "low": 4,
+                    "info": 5,
+                    "name": "dev"
+                },
+                {
+                    "id": 1,
+                    "project_id": 2,
+                    "engagement": null,
+                    "test_id": 1,
+                    "test_uid": "42105aec-d49d-4f8c-86e5-c9e5fff9d13a",
+                    "start_date": "2023-03-08T06:31:09.824000",
+                    "duration": null,
+                    "scan_time": "2023-03-08 06:34:44",
+                    "scan_duration": "189",
+                    "app_name": "dev",
+                    "dast_target": null,
+                    "sast_code": null,
+                    "scan_type": "DAST",
+                    "false_positives": 0,
+                    "excluded": 0,
+                    "info_findings": 0,
+                    "environment": "target",
+                    "findings": 0,
+                    "tags": [],
+                    "test_status": {
+                        "status": "Finished",
+                        "percentage": 100,
+                        "description": "All done"
+                    },
+                    "valid": 0,
+                    "false_positive": 0,
+                    "ignored": 0,
+                    "not_defined": 0,
+                    "critical": 2,
+                    "high": 10,
+                    "medium": 0,
+                    "low": 0,
+                    "info": 0,
+                    "name": "dev"
+                }
+            ]
+        }
+    }
+    const reports = data.application.reports;
+    // const scanTimes = reports.map(report => report.scan_time.split(' ')[0]);
+    let occurences = {};
+
+    reports.forEach((obj) => {
+        const startDate = obj.start_date.split('T')[0]
+        if (occurences[startDate] === undefined) {
+            occurences[startDate] = 1
+        } else {
+            occurences[startDate] += 1
+        }
+
+    })
+     console.log(Object.keys(occurences))
+     console.log(Object.values(occurences))
+
+
+</script>
+</html>

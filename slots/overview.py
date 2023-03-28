@@ -3,7 +3,7 @@ from sqlalchemy.util.queue import Empty
 
 
 class Slot:
-    @web.slot('performance_analysis_overview_content')
+    @web.slot('security_analysis_overview_content')
     def content(self, context, slot, payload):
         project_id = context.rpc_manager.call.project_get_id()
         public_regions = context.rpc_manager.call.get_rabbit_queues("carrier")
@@ -55,14 +55,14 @@ class Slot:
                 }
             )
 
-    @web.slot('performance_analysis_overview_scripts')
+    @web.slot('security_analysis_overview_scripts')
     def scripts(self, context, slot, payload):
         with context.app.app_context():
             return self.descriptor.render_template(
                 'overview/scripts.html',
             )
 
-    @web.slot('performance_analysis_overview_styles')
+    @web.slot('security_analysis_overview_styles')
     def styles(self, context, slot, payload):
         with context.app.app_context():
             return self.descriptor.render_template(

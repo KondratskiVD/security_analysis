@@ -1,5 +1,9 @@
-<script src="{{ url_for('performance_analysis.static', filename='js/overview.js') }}"></script>
-<script src="{{ url_for('ui_performance.static', filename='js/core.js') }}"></script>
+<script src="{{ url_for('security_analysis.static', filename='js/api/OverviewAPI.js') }}"></script>
+<script src="{{ url_for('security_analysis.static', filename='js/utils/chart-options.js') }}"></script>
+<script src="{{ url_for('security_analysis.static', filename='js/OverviewChart.js') }}"></script>
+<script src="{{ url_for('security_analysis.static', filename='js/OverviewFilter.js') }}"></script>
+<script src="{{ url_for('security_analysis.static', filename='js/OverviewCards.js') }}"></script>
+<script src="{{ url_for('security_analysis.static', filename='js/Overview.js') }}"></script>
 
 {{ template_slot('backend_performance_scripts') | safe }}
 {{ template_slot('performance_analysis_scripts') | safe }}

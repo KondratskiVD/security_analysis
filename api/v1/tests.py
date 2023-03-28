@@ -13,15 +13,16 @@ class API(Resource):
 
     def get(self, project_id: int):
         result = []
-        for plugin in ('backend_performance', 'ui_performance'):
+        security_plugins = ['application', ]
+        for plugin in security_plugins:
             try:
                 tests = self.module.context.rpc_manager.call_function_with_timeout(
-                    func=f'{plugin}_get_tests',
+                    func=f'{plugin}_security_get_tests',
                     timeout=3,
                     project_id=project_id,
                 )
                 result.extend(
-                    [{"test_type": plugin, **test.api_json()} for test in tests]
+                    [{"test_type": plugin, **test.to_json()} for test in tests]
                 )
             except Empty:
                 ...

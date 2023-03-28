@@ -1,23 +1,79 @@
 const OverviewPage = {
-    delimiters: ['[[', ']]'],
-    data() {
+    components: {
+        'overview-table-cards': OverviewTableCards,
+        'overview-chart': OverviewChart,
+        'overview-filter': OverviewFilter
+    }, mounted() {
+        ApiFetchReports().then(data => {
+            this.healthColor = data.application.health
+            this.applicationReports = data.application.reports
+            $('#table_reports_overview').bootstrapTable('load', this.applicationReports);
+        })
+         ApiFetchTests().then(data => {
+            this.securityTests = data
+            $('#table_tests_overview').bootstrapTable('load', this.securityTests);
+        })
+    }, data() {
         return {
+            applicationReports: null,
+            securityTests: null,
+            healthColor: null,
             reports_table_params: {
                 id: 'table_reports_overview',
-                'data-url': `/api/v1/performance_analysis/reports/${getSelectedProjectId()}`,
                 'data-height': '247',
                 'data-side-pagination': true,
                 'data-pagination': false,
-            },
-            tests_table_params: {
-                'data-url': `/api/v1/performance_analysis/tests/${getSelectedProjectId()}`,
+            }, tests_table_params: {
                 'data-height': '247',
                 id: 'table_tests_overview',
                 'data-pagination': false,
                 'data-unique-id': 'uid',
+            },
+            isLoading: true,
+            chartLineOptions,
+            chartLineDatasets: [],
+            labels: null,
+        }
+
+    }, watch: {
+        applicationReports(newValue) {
+            if (newValue.length > 0) {
+                this.isLoading = false
+                this.generateDataset(newValue)
             }
         }
+    }, methods: {
+        generateDataset(reports) {
+            const lineDatasets = [{
+                data: null,
+                label: 'number of runs',
+                // borderWidth: 2,
+                // borderColor: 'rgb(75, 192, 192)',
+                // backgroundColor: 'rgb(75, 192, 192)',
+                tension: 0.4,
+                borderWidth: 4,
+                borderColor: '#5e72e4',
+                backgroundColor: 'transparent',
+                borderCapStyle: 'rounded',
+                fill: false,
+            }];
+            let occurrences = {}
+            reports.forEach((result) => {
+                const startDate = result.start_date.split('T')[0]
+                if (occurrences[startDate] === undefined) {
+                    occurrences[startDate] = 1
+                } else {
+                    occurrences[startDate] += 1
+                }
+            });
+            console.log(occurrences)
+            this.labels = Object.keys(occurrences).reverse();
+            lineDatasets[0].data = Object.values(occurrences).reverse();
+            this.chartLineDatasets = lineDatasets;
+
+        }
     },
+
     template: `
     <div class="p-3">
     <div class="card">
@@ -25,22 +81,38 @@ const OverviewPage = {
             <h3>Summary</h3>
         </div>
         <div class="card-body d-flex flex-column">
-            <SummaryFilter :calculate_health="true">
-                <template #cards="{master}">
-                    <ColorfulCards
-                        :card_data="master.colorful_cards_data"
-                        :selected_aggregation_backend="master.selected_aggregation_backend"
-                        :selected_aggregation_ui="master.selected_aggregation_ui"
-                        :selected_metric_ui="master.selected_metric_ui"
-                        :health_metric="master.health_metric"
-                    ></ColorfulCards>
-                </template>
-            ></SummaryFilter>
+        <overview-filter
+        :data="securityTests"
+        >
+        </overview-filter>
+         <overview-table-cards
+            v-bind:reports="applicationReports"
+            v-bind:healthColor="healthColor"
+            >
+         </overview-table-cards>
+         
         </div>
     </div>
+    
+    <div class="card mt-3 p-28">
+        <div class="header">
+            <h4 class="font-bold">Scans frequency</h4>
+        </div>
+            <div>
+                <overview-chart
+                    :key="isLoading"
+                    :is-loading="isLoading"
+                    chart-id="chartScansFrequency"
+                    :options="chartLineOptions"
+                    :datasets="chartLineDatasets"
+                    :labels="labels">
+                </overview-chart>
+            </div>
+    </div>
+    
     <div class="flex-container">
         <div class="flex-item-2">
-            <TableCard
+        <TableCard
                 @register="$root.register"
                 instance_name="table_tests_overview"
                 header='Tests'
@@ -64,12 +136,7 @@ const OverviewPage = {
                             <li class="px-3 py-1 font-weight-bold">Create Test</li>
                             <li class="dropdown-item">
                                 <span class="pl-2" data-toggle="modal" data-target="#create_backend_modal_overview">
-                                    Backend
-                                </span>
-                            </li>
-                            <li class="dropdown-item">
-                                <span class="pl-2" data-toggle="modal" data-target="#create_ui_modal_overview">
-                                UI performance
+                                    Application
                                 </span>
                             </li>
                         </ul>
@@ -85,15 +152,9 @@ const OverviewPage = {
                     </th>
                     <th scope="col" data-sortable="true"
                         data-cell-style="test_formatters.name_style"
-                        data-field="entrypoint"
+                        data-field="test_type"
                     >
-                        Entrypoint
-                    </th>
-                    <th scope="col" data-align="center" data-sortable="true"
-                        data-formatter=test_formatters.job_type
-                        data-field="job_type"
-                    >
-                        Runner
+                        Group
                     </th>
                     <th scope="col" data-align="right"
                         data-cell-style="test_formatters.cell_style"
@@ -132,22 +193,14 @@ const OverviewPage = {
                     >
                         Name
                     </th>
-                    <th scope="col" data-sortable="true" data-field="start_time"
+                    <th scope="col" data-sortable="true" data-field="start_date"
                         data-formatter="report_formatters.start"
                     >
                         Start
                     </th>
-                    <th scope="col" 
-                        data-sortable="true" 
-                        data-align="center" 
-                        data-field="test_config.job_type"
-                        data-formatter="report_formatters.job_type"
-                    >
-                        Runner
-                    </th>
                     <th scope="col" data-sortable="true" data-field="test_status"
                         data-align="right"
-                        data-formatter="report_formatters.full_status"
+                         data-formatter="report_formatters.full_status"
                     >
                         Status
                     </th>

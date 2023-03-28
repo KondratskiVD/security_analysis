@@ -43,40 +43,13 @@ class Module(module.ModuleModel):
         log.info("Initializing module")
         self.descriptor.init_blueprint()
 
-        # Theme registration
-        try:
-            theme.register_section(
-                "performance",
-                "Performance",
-                kind="holder",
-                location="left",
-            )
-        except:
-            ...
-
         theme.register_subsection(
-            "performance", "analysis",
-            "Analysis",
-            title="Analysis",
-            kind="slot",
-            prefix="performance_analysis_",
-            weight=4,
-        )
-        theme.register_subsection(
-            "performance", "overview",
+            "security", "overview",
             "Overview",
             title="Overview",
             kind="slot",
-            prefix="performance_analysis_overview_",
-            weight=6,
-        )
-
-        theme.register_page(
-            "performance", "analysis",
-            "compare",
-            title="Tests Comparison",
-            kind="slot",
-            prefix="performance_analysis_compare_",
+            prefix="security_analysis_overview_",
+            weight=10,
         )
         self.descriptor.init_rpcs()
         self.descriptor.init_api()
